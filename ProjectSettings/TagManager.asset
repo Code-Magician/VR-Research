@@ -8,6 +8,10 @@ TagManager:
   - Right Hand
   - Left Hand
   - Basketball Collider
+  - Outside Ground
+  - Ground
+  - Bat
+  - Wickets
   layers:
   - Default
   - TransparentFX

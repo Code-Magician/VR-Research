@@ -1,44 +1,134 @@
+using System.Collections;
 using UnityEngine;
 
 public class CricketBall : MonoBehaviour
 {
-    [SerializeField] float minSpeed = 40f, maxSpeed = 120f; // Speed range
     [SerializeField] Rigidbody rb;
+    [SerializeField] AudioSource audioSource;
+    [SerializeField] float extraForce = 2f;
+    [SerializeField] float waitTime;
+    [SerializeField] int distOneRun, distTwoRun, distThreeRun;
 
-    private float speed;
-    private Transform startXTr, endXTr, startZTr, endZTr; // Position boundaries
+    private string previousCollidedTag = null;
+    private bool hasHitBat = false;
 
-    void Start()
+    private void Awake()
     {
-        startXTr = DataHandler.Instance.startXTr;
-        endXTr = DataHandler.Instance.endXTr;
-        startZTr = DataHandler.Instance.startZTr;
-        endZTr = DataHandler.Instance.endZTr;
-
-        Throw();
+        rb.isKinematic = true;
+        rb.velocity = Vector3.zero;
+        rb.angularVelocity = Vector3.zero;
+    }
+    public void SetVelocity(float speed)
+    {
+        rb.isKinematic = false;
+        rb.velocity = transform.forward * speed;
     }
 
-    public void Throw()
+    private void OnCollisionEnter(Collision collision)
     {
-        float g = Physics.gravity.magnitude;
-        float u = Random.Range(minSpeed, maxSpeed); // Get random speed
+        if (collision.gameObject.CompareTag("Wickets"))
+        {
+            GameEvents.OnPlayerOut.Invoke();
+            GameEvents.HandleHighScore();
 
-        // Pick a random landing position within the defined range
-        float xPos = Random.Range(startXTr.position.x, endXTr.position.x);
-        float zPos = Random.Range(startZTr.position.z, endZTr.position.z);
-        Vector3 landPosition = new Vector3(xPos, 0, zPos);
-        Vector3 startPosition = new Vector3(transform.position.x, 0, transform.position.z);
+            Destroy(gameObject);
+        }
+        else if (previousCollidedTag == null)
+        {
+            if (collision.gameObject.CompareTag("Bat")) previousCollidedTag = "Bat";
+            else if (collision.gameObject.CompareTag("Ground")) previousCollidedTag = "Ground";
+            else if(collision.gameObject.CompareTag("Outside Ground"))
+            {
+                UIHandler.Instance.SetScoreBoard(0);
+                GameEvents.OnBallMiss.Invoke();
+                Destroy(gameObject);
+            }
+        }
+        else if(collision.gameObject.CompareTag("Ground"))
+        {
+            previousCollidedTag = "Ground";
+        }
+        else if(collision.gameObject.CompareTag("Bat") || 
+                collision.gameObject.CompareTag("Left Hand") ||
+                collision.gameObject.CompareTag("Right Hand") ||
+                collision.gameObject.CompareTag("Player"))
+        {
+            hasHitBat = true;
+            previousCollidedTag = "Bat";
 
-        float x = (landPosition - startPosition).magnitude;
-        float h = transform.position.y; // Ball's initial height
+            audioSource.Stop();
+            audioSource.Play();
 
+            // Applying extra force
+            if (rb != null && collision.contactCount > 0)
+            {
+                Vector3 batVelocity = Vector3.zero;
+                if(collision.gameObject.CompareTag("Bat"))
+                {
+                    Rigidbody batRb = collision.gameObject.GetComponent<Rigidbody>();
+                    batVelocity = batRb.velocity;
+                }
+                // Get the first contact point normal
+                ContactPoint contact = collision.GetContact(0);
+                Vector3 normal = contact.normal;
 
-        float phi = Mathf.Atan(x / h) * Mathf.Rad2Deg;
-        float alpha = (g * x*x) / (u * u);
-        float theta = 90- (phi + Mathf.Acos((alpha - h) / (Mathf.Sqrt(h * h + x * x))) * Mathf.Rad2Deg)/2;
+                // Calculate the additional force
+                Vector3 extraBounceForce = normal * extraForce + batVelocity;
 
-        Debug.Log($"g={g}, u={u}, x={x}, h={h}, phi={phi}, theta={theta}");
-        transform.rotation = Quaternion.Euler(0, 0, theta);
-        rb.velocity = -transform.right * u;
+                // Add the force to the existing velocity
+                rb.velocity += extraBounceForce;
+            }
+
+            GameEvents.OnPlayerHitBall.Invoke();
+            StartCoroutine(DestroyBallAfter());
+        }
+        else if(collision.gameObject.CompareTag("Outside Ground"))
+        {
+            if(hasHitBat)
+            {
+                if(previousCollidedTag == "Bat")
+                {
+                    UIHandler.Instance.SetScoreBoard(6);
+                    Destroy(gameObject);
+                }
+                else if(previousCollidedTag == "Ground")
+                {
+                    UIHandler.Instance.SetScoreBoard(4);
+                    Destroy(gameObject);
+                }
+            }
+            else
+            {
+                UIHandler.Instance.SetScoreBoard(0);
+                GameEvents.OnBallMiss.Invoke();
+                Destroy(gameObject);
+            }
+        }
+    }
+
+    public IEnumerator DestroyBallAfter()
+    {
+        yield return new WaitForSeconds(waitTime);
+
+        if(hasHitBat)
+        {
+            Vector3 playerPos = GameObject.FindGameObjectWithTag("Player").gameObject.transform.position;
+
+            float dist = Vector3.Distance(playerPos, transform.position);
+
+            if (dist >= distOneRun)
+            {
+                UIHandler.Instance.SetScoreBoard(1);
+            }
+            else if (dist >= distTwoRun)
+            {
+                UIHandler.Instance.SetScoreBoard(2);
+            }
+            else if(dist >= distThreeRun)
+            {
+                UIHandler.Instance.SetScoreBoard(3);
+            }
+            Destroy(gameObject);
+        }
     }
 }

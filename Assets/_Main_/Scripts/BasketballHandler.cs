@@ -8,7 +8,6 @@ public class BasketballHandler : MonoBehaviour
     {
         if(other.gameObject.CompareTag("Basketball Collider"))
         {
-            UIHandler.Instance.AddScore();
         }
     }
 }
