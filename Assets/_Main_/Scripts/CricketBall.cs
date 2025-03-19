@@ -3,7 +3,7 @@ using UnityEngine;
 
 public class CricketBall : MonoBehaviour
 {
-    [SerializeField] Rigidbody rb;
+    public Rigidbody rb;
     [SerializeField] AudioSource audioSource;
     [SerializeField] float extraForce = 2f;
     [SerializeField] float waitTime;
@@ -14,9 +14,6 @@ public class CricketBall : MonoBehaviour
 
     private void Awake()
     {
-        rb.isKinematic = true;
-        rb.velocity = Vector3.zero;
-        rb.angularVelocity = Vector3.zero;
     }
     public void SetVelocity(float speed)
     {
@@ -35,7 +32,19 @@ public class CricketBall : MonoBehaviour
         }
         else if (previousCollidedTag == null)
         {
-            if (collision.gameObject.CompareTag("Bat")) previousCollidedTag = "Bat";
+            if (collision.gameObject.CompareTag("Bat"))
+            {
+                hasHitBat = true;
+                previousCollidedTag = "Bat";
+
+                audioSource.Stop();
+                audioSource.Play();
+
+                rb.velocity *= 1.5f;
+
+                GameEvents.OnPlayerHitBall.Invoke();
+                StartCoroutine(DestroyBallAfter());
+            }
             else if (collision.gameObject.CompareTag("Ground")) previousCollidedTag = "Ground";
             else if(collision.gameObject.CompareTag("Outside Ground"))
             {
@@ -59,25 +68,7 @@ public class CricketBall : MonoBehaviour
             audioSource.Stop();
             audioSource.Play();
 
-            // Applying extra force
-            if (rb != null && collision.contactCount > 0)
-            {
-                Vector3 batVelocity = Vector3.zero;
-                if(collision.gameObject.CompareTag("Bat"))
-                {
-                    Rigidbody batRb = collision.gameObject.GetComponent<Rigidbody>();
-                    batVelocity = batRb.velocity;
-                }
-                // Get the first contact point normal
-                ContactPoint contact = collision.GetContact(0);
-                Vector3 normal = contact.normal;
-
-                // Calculate the additional force
-                Vector3 extraBounceForce = normal * extraForce + batVelocity;
-
-                // Add the force to the existing velocity
-                rb.velocity += extraBounceForce;
-            }
+            rb.velocity *= 1.5f;
 
             GameEvents.OnPlayerHitBall.Invoke();
             StartCoroutine(DestroyBallAfter());
@@ -116,17 +107,17 @@ public class CricketBall : MonoBehaviour
 
             float dist = Vector3.Distance(playerPos, transform.position);
 
-            if (dist >= distOneRun)
+            if (dist >= distThreeRun)
             {
-                UIHandler.Instance.SetScoreBoard(1);
+                UIHandler.Instance.SetScoreBoard(3);
             }
             else if (dist >= distTwoRun)
             {
                 UIHandler.Instance.SetScoreBoard(2);
             }
-            else if(dist >= distThreeRun)
+            else if(dist >= distOneRun)
             {
-                UIHandler.Instance.SetScoreBoard(3);
+                UIHandler.Instance.SetScoreBoard(1);
             }
             Destroy(gameObject);
         }

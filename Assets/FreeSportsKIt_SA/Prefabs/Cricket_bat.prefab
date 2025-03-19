@@ -103,8 +103,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 0.27903885, y: 0.787137, z: 0.15560597}
-  m_Center: {x: 0.0071705137, y: -0.02850925, z: 0.037028275}
+  m_Size: {x: 0.19278781, y: 0.7511404, z: 0.09316632}
+  m_Center: {x: 0.0022284975, y: -0.006175102, z: 0.005807751}
 --- !u!1 &1952101702931164680
 GameObject:
   m_ObjectHideFlags: 0
@@ -118,7 +118,6 @@ GameObject:
   - component: {fileID: 1071429901967608726}
   - component: {fileID: 221658294378788348}
   - component: {fileID: 6005314883880343723}
-  - component: {fileID: 1814089946163242258}
   m_Layer: 0
   m_Name: Cricket_bat
   m_TagString: Bat
@@ -436,21 +435,6 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
---- !u!138 &1814089946163242258
-FixedJoint:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1952101702931164680}
-  m_ConnectedBody: {fileID: 0}
-  m_ConnectedArticulationBody: {fileID: 0}
-  m_BreakForce: Infinity
-  m_BreakTorque: Infinity
-  m_EnableCollision: 1
-  m_EnablePreprocessing: 1
-  m_MassScale: 1
-  m_ConnectedMassScale: 1
 --- !u!1 &2167887751224966343
 GameObject:
   m_ObjectHideFlags: 0
@@ -554,8 +538,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 0.18342069, y: 0.787137, z: 0.08154999}
-  m_Center: {x: 0.0000000049919593, y: -0.027275983, z: 0.00000024812374}
+  m_Size: {x: 0.18342069, y: 0.7293398, z: 0.08154999}
+  m_Center: {x: 0.0000000082794145, y: 0.0016221856, z: 0.00000023257545}
 --- !u!1 &6472599963412519500
 GameObject:
   m_ObjectHideFlags: 0
@@ -659,8 +643,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 0.078576155, y: 0.38119262, z: 0.07610684}
-  m_Center: {x: -0.0000019073486, y: 0.0000009313226, z: -0.00000047683716}
+  m_Size: {x: 0.037180256, y: 0.38119262, z: 0.03845071}
+  m_Center: {x: 0.002970692, y: 0.0000009396527, z: -0.006803308}
 --- !u!1 &6708879039402607142
 GameObject:
   m_ObjectHideFlags: 0
@@ -878,8 +862,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 0.18342069, y: 0.787137, z: 0.08154999}
-  m_Center: {x: 0, y: 0.000000044703484, z: 0.00000023841858}
+  m_Size: {x: 0.18342069, y: 0.7229828, z: 0.08154999}
+  m_Center: {x: 0.000000011753512, y: 0.032077, z: 0.00000015474788}
 --- !u!1 &9090153744624230276
 GameObject:
   m_ObjectHideFlags: 0

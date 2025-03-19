@@ -16,6 +16,7 @@ public class CricketBat : MonoBehaviour
         }
         else if(collision.gameObject.CompareTag("Ground"))
         {
+            Debug.Log(collision.gameObject.tag);
             audioSource.Stop();
             audioSource.Play();
         }
