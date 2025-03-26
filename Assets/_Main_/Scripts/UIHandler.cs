@@ -45,18 +45,6 @@ public class UIHandler : MonoBehaviour
         {
             feedbackTxt.text = "Missed Ball";
         }
-        else if(GameEvents.runs == 50)
-        {
-            feedbackTxt.text = "You scored a Half Century!";
-        }
-        else if(GameEvents.runs == 100)
-        {
-            feedbackTxt.text = "You scored a Century!!";
-        }
-        else if(GameEvents.runs/100 > 1)
-        {
-            feedbackTxt.text = $"{GameEvents.runs / 100} Centuries!!!";
-        }
         else if(scoredRuns == 1 || scoredRuns == 2 || scoredRuns == 3)
         {
             feedbackTxt.text = $"{scoredRuns} Run" + (scoredRuns != 1 ? "s" : "");

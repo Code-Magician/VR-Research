@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 9148143597414938672}
   - component: {fileID: 3498804362937695745}
   - component: {fileID: 815359397996627343}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Collider
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -106,7 +106,7 @@ TrailRenderer:
       m_Curve:
       - serializedVersion: 3
         time: 0.013376275
-        value: 0.1
+        value: 0.05
         inSlope: 0
         outSlope: 0
         tangentMode: 0
@@ -135,7 +135,7 @@ TrailRenderer:
       key5: {r: 0, g: 0, b: 0, a: 0}
       key6: {r: 0, g: 0, b: 0, a: 0}
       key7: {r: 0, g: 0, b: 0, a: 0}
-      ctime0: 39398
+      ctime0: 0
       ctime1: 65535
       ctime2: 0
       ctime3: 0
@@ -159,7 +159,7 @@ TrailRenderer:
     numCapVertices: 0
     alignment: 0
     textureMode: 0
-    textureScale: {x: 1, y: 1}
+    textureScale: {x: 0.5, y: 0.5}
     shadowBias: 0.5
     generateLightingData: 0
   m_MinVertexDistance: 0.1
@@ -181,7 +181,7 @@ GameObject:
   - component: {fileID: 4799641302388571245}
   - component: {fileID: 8888566465071070334}
   - component: {fileID: 2320050872845549444}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Cricket_ball
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -197,8 +197,8 @@ Transform:
   m_GameObject: {fileID: 8248042332050722682}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 2, y: 2, z: 2}
+  m_LocalPosition: {x: 0.8, y: 0, z: 4.39}
+  m_LocalScale: {x: 1.75, y: 1.75, z: 1.75}
   m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 9148143597414938672}
@@ -268,11 +268,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   rb: {fileID: 8888566465071070334}
   audioSource: {fileID: 2320050872845549444}
-  extraForce: 0
   waitTime: 10
-  distOneRun: 5
-  distTwoRun: 15
-  distThreeRun: 25
+  distOneRun: 10
+  distTwoRun: 25
+  distThreeRun: 35
+  maxSwingForce: 5
+  isInSwing: 0
+  spinTargetPos: {x: 0, y: 0, z: 0}
 --- !u!54 &8888566465071070334
 Rigidbody:
   m_ObjectHideFlags: 0

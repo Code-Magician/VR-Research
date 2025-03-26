@@ -1,27 +1,31 @@
+using DG.Tweening;
+using ProjectileCurveVisualizerSystem;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.XR;
+using UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Receiver.Primitives;
+using static UnityEngine.GraphicsBuffer;
 
 public class BowlingMachine : MonoBehaviour
 {
     [SerializeField] GameObject ballPrefab;
-    [SerializeField] Transform spawnLocation;
+    [SerializeField] Transform spawnLocation, wicketTr;
     [SerializeField] float minSpeed = 40f, maxSpeed = 120f;
-    [SerializeField] Transform startXTr, endXTr;
+    [SerializeField] Transform startXTr, endXTr, startZTr, endZTr, spinStartZ, spinEndZ;
     [SerializeField] float timeBetweenNewBallSpawn = 1f;
-    [SerializeField] GameObject landPointMarker, playerOptionsCanvas;
-    [SerializeField] TMP_Text timerTxt, ballingSpeedTxt;
+    [SerializeField] GameObject playerOptionsCanvas;
+    [SerializeField] TMP_Text timerTxt, ballingSpeedTxt, ballingtypeTxt;
+    [SerializeField] ProjectileCurveVisualizer projectileCurveVisualizer;
 
 
     private float timer = 0.0f;
     private float speed;
-    private Vector3 direction;
-    private bool isRunning = false;
-
-    private float distance = 0, time = 0;
-    GameObject currentBallObj;
-    private bool ballThrown = false;
+    private Vector3 direction, landPosition;
+    private bool isRunning = false, isInSwing;
+    private Vector3 updatedProjectileStartPosition;
+    private RaycastHit hit;
 
     private void OnEnable()
     {
@@ -37,6 +41,21 @@ public class BowlingMachine : MonoBehaviour
         GameEvents.OnBallMiss -= OnBallMiss;
     }
 
+    private void Awake()
+    {
+        if (GameEvents.isSpin)
+        {
+            ballingtypeTxt.text = "Balling Spin";
+            minSpeed = 22;
+            maxSpeed = 30;
+        }
+        else
+        {
+            ballingtypeTxt.text = "Balling Fast";
+            minSpeed = 30f;
+            maxSpeed = 45;
+        }
+    }
 
     private void Update()
     {
@@ -47,7 +66,7 @@ public class BowlingMachine : MonoBehaviour
 
             if ((timer > timeBetweenNewBallSpawn))
             {
-                StartCoroutine(SpawnBall());
+                SpawnBall();
 
                 timer = 0;
                 isRunning = false;
@@ -55,9 +74,11 @@ public class BowlingMachine : MonoBehaviour
             }
         }
 
-        if (ballThrown)
+        InputDevice rightHand = InputDevices.GetDeviceAtXRNode(XRNode.RightHand);
+
+        if (playerOptionsCanvas.activeInHierarchy && rightHand.TryGetFeatureValue(CommonUsages.primaryButton, out bool primaryButton) && primaryButton)
         {
-            time += Time.deltaTime;
+            Spawn();
         }
     }
 
@@ -71,83 +92,79 @@ public class BowlingMachine : MonoBehaviour
     public void OnPlayerHitBall()
     {
         playerOptionsCanvas.SetActive(true);
-
-        distance = Vector3.Distance(spawnLocation.position, currentBallObj.transform.position);
-
-        Debug.Log($"Ball Speed : {distance / time}, Distance : {distance}, Time : {time}");
-
-        ballThrown = false;
-        distance = 0;
-        time = 0;
+        projectileCurveVisualizer.HideProjectileCurve();
     }
 
     public void OnBallMiss()
     {
         playerOptionsCanvas.SetActive(true);
+        projectileCurveVisualizer.HideProjectileCurve();
     }
 
     public void Spawn()
     {
-        isRunning = true;
         timerTxt.transform.parent.gameObject.SetActive(true);
         playerOptionsCanvas.SetActive(false);
         UIHandler.Instance.SetFeedback("");
 
-        // Calculation
+        // Ball Speed Calculation
         float u = Random.Range(minSpeed, maxSpeed); // Get random speed
         speed = u;
-        ballingSpeedTxt.text = (speed * 3600f/1000f).ToString("F1") +" Km/h";
+        ballingSpeedTxt.text = (speed * 3600f / 1000f).ToString("F1") + " Km/h";
 
-        // Pick a random landing position within the defined range
-        float xPos = Random.Range(startXTr.position.x, endXTr.position.x);
-        Vector3 landPosition = new Vector3(xPos, 0, spawnLocation.transform.position.z);
-        Vector3 startPosition = spawnLocation.transform.position;
-        direction = (landPosition - startPosition).normalized;
+        // Set Balling Spawn Location.
+        float spawnZPos = Random.Range(-startZTr.position.z, startZTr.position.z);
+        Vector3 spawnPos = transform.position;
+        spawnPos.z = spawnZPos;
+        transform.DOMove(spawnPos, 1f).OnComplete(() =>
+        {
+            // Set Ball Direction and Land Position.
+            float xPos = Random.Range(startXTr.position.x, endXTr.position.x);
+            float zPos = Random.Range(startZTr.position.z, endZTr.position.z);
+            landPosition = new Vector3(xPos, 0, zPos);
+            Vector3 startPosition = spawnLocation.transform.position;
+            direction = (landPosition - startPosition).normalized;
 
-        //landPointMarker.transform.position = landPosition;
+            if(!GameEvents.isSpin)
+            {
+                if (landPosition.z < wicketTr.position.z)
+                {
+                    isInSwing = true;
+                    ballingtypeTxt.text = "Balling In Swing";
+                }
+                else
+                {
+                    isInSwing = false;
+                    ballingtypeTxt.text = "Balling Out Swing";
+                }
+            }
+
+            projectileCurveVisualizer.VisualizeProjectileCurve(spawnLocation.position, 0f, direction * speed, 0.05f, 0.01f, false, out updatedProjectileStartPosition, out hit);
+
+            isRunning = true;
+        });
     }
 
 
-    public IEnumerator SpawnBall()
+    public void SpawnBall()
     {
         GameObject ballObj = Instantiate(ballPrefab, spawnLocation.position, Quaternion.identity);
-        currentBallObj = ballObj;
 
-        ballObj.GetComponent<CricketBall>().rb.velocity = direction * speed;
-        ballThrown = true;
+        // Set the velocity along this direction
+        CricketBall cricketBall = ballObj.GetComponent<CricketBall>();
+        cricketBall.rb.velocity = direction * speed;
 
-        yield return new WaitForEndOfFrame();
-    }
+        if(GameEvents.isSpin)
+        {
+            Vector3 spinTargetPos = spinStartZ.position;
+            float zPos = Random.Range(spinStartZ.position.z, spinEndZ.position.z);
+            spinTargetPos.z = zPos;
 
-    public void BallDataCalculation(GameObject ballObj)
-    {
-        float g = Physics.gravity.magnitude;
-        float u = Random.Range(minSpeed, maxSpeed); // Get random speed
-        speed = u;
-
-        // Pick a random landing position within the defined range
-        float xPos = Random.Range(startXTr.position.x, endXTr.position.x);
-        Vector3 landPosition = new Vector3(xPos, 0, ballObj.transform.position.z);
-        Vector3 startPosition = new Vector3(ballObj.transform.position.x, 0, ballObj.transform.position.z);
-
-        float x = (landPosition - startPosition).magnitude;
-        float h = ballObj.transform.position.y; // Ball's initial height
-
-
-        float phi = Mathf.Atan(x / h) * Mathf.Rad2Deg;
-        float alpha = (g * x * x) / (u * u);
-        float theta = 90 - (phi + Mathf.Acos((alpha - h) / (Mathf.Sqrt(h * h + x * x))) * Mathf.Rad2Deg) / 2;
-
-        //Debug.Log($"g={g}, u={u}, x={x}, h={h}, phi={phi}, theta={theta}");
-
-        Vector3 direction = landPosition - startPosition;
-        direction.y = 0;
-        ballObj.transform.rotation = Quaternion.LookRotation(direction);
-        Vector3 rot = ballObj.transform.rotation.eulerAngles;
-        rot.z = theta;
-        ballObj.transform.rotation = Quaternion.Euler(rot);
-
-        landPosition.y = 0.015f;
-        landPointMarker.transform.position = landPosition;
+            cricketBall.spinTargetPos = spinTargetPos;
+        }
+        else
+        {
+            cricketBall.isInSwing = isInSwing;
+        }
     }
 }

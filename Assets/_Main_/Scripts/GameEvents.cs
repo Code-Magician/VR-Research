@@ -11,6 +11,7 @@ public static class GameEvents
 
     public static int runs = 0;
     public static int balls = 0;
+    public static bool isSpin = true;
 
     public static void HandleHighScore()
     {

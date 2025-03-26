@@ -5,20 +5,37 @@ public class CricketBall : MonoBehaviour
 {
     public Rigidbody rb;
     [SerializeField] AudioSource audioSource;
-    [SerializeField] float extraForce = 2f;
     [SerializeField] float waitTime;
     [SerializeField] int distOneRun, distTwoRun, distThreeRun;
+    [SerializeField] float maxSwingForce;
 
+    [HideInInspector] public bool isInSwing;
+    [HideInInspector] public Vector3 spinTargetPos;
     private string previousCollidedTag = null;
-    private bool hasHitBat = false;
+    private bool hasHitBat = false, isSwinging = true;
 
     private void Awake()
     {
+
     }
-    public void SetVelocity(float speed)
+
+    private void FixedUpdate()
     {
-        rb.isKinematic = false;
-        rb.velocity = transform.forward * speed;
+        if(!GameEvents.isSpin && isSwinging)
+        {
+            Vector3 swingDir = Vector3.Cross(rb.velocity, Vector3.up).normalized;
+            float swingForce = Random.Range(0f, maxSwingForce);
+
+            switch(isInSwing)
+            {
+                case true:
+                    rb.AddForce(-swingDir * swingForce);
+                    break;
+                case false:
+                    rb.AddForce(swingDir * swingForce);
+                    break;
+            }
+        }
     }
 
     private void OnCollisionEnter(Collision collision)
@@ -32,7 +49,7 @@ public class CricketBall : MonoBehaviour
         }
         else if (previousCollidedTag == null)
         {
-            if (collision.gameObject.CompareTag("Bat"))
+            if (collision.gameObject.CompareTag("Bat") && !hasHitBat)
             {
                 hasHitBat = true;
                 previousCollidedTag = "Bat";
@@ -45,7 +62,34 @@ public class CricketBall : MonoBehaviour
                 GameEvents.OnPlayerHitBall.Invoke();
                 StartCoroutine(DestroyBallAfter());
             }
-            else if (collision.gameObject.CompareTag("Ground")) previousCollidedTag = "Ground";
+            else if (collision.gameObject.CompareTag("Ground"))
+            {
+                previousCollidedTag = "Ground";
+
+                if(GameEvents.isSpin)
+                {
+                    float currentY = rb.velocity.y;
+
+                    Vector3 toTarget = (spinTargetPos - transform.position);
+                    toTarget.y = 0; // Only care about horizontal direction
+                    toTarget.Normalize();
+
+                    // Preserve horizontal speed (XZ magnitude)
+                    Vector3 currentHorizontal = rb.velocity;
+                    currentHorizontal.y = 0;
+                    float horizontalSpeed = currentHorizontal.magnitude;
+
+                    // Apply new horizontal direction with same speed, retain Y
+                    Vector3 newVelocity = toTarget * horizontalSpeed;
+                    newVelocity.y = currentY;
+
+                    rb.velocity = newVelocity;
+                }
+                else
+                {
+                    isSwinging = false;
+                }
+            }
             else if(collision.gameObject.CompareTag("Outside Ground"))
             {
                 UIHandler.Instance.SetScoreBoard(0);
@@ -57,10 +101,7 @@ public class CricketBall : MonoBehaviour
         {
             previousCollidedTag = "Ground";
         }
-        else if(collision.gameObject.CompareTag("Bat") || 
-                collision.gameObject.CompareTag("Left Hand") ||
-                collision.gameObject.CompareTag("Right Hand") ||
-                collision.gameObject.CompareTag("Player"))
+        else if(collision.gameObject.CompareTag("Bat") && !hasHitBat)
         {
             hasHitBat = true;
             previousCollidedTag = "Bat";
@@ -68,7 +109,7 @@ public class CricketBall : MonoBehaviour
             audioSource.Stop();
             audioSource.Play();
 
-            rb.velocity *= 1.5f;
+            rb.velocity *= 2.5f;
 
             GameEvents.OnPlayerHitBall.Invoke();
             StartCoroutine(DestroyBallAfter());
@@ -91,6 +132,30 @@ public class CricketBall : MonoBehaviour
             else
             {
                 UIHandler.Instance.SetScoreBoard(0);
+                GameEvents.OnBallMiss.Invoke();
+                Destroy(gameObject);
+            }
+        }
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if(other.gameObject.CompareTag("BallMissCollider"))
+        {
+            if(!hasHitBat)
+            {
+                UIHandler.Instance.SetScoreBoard(0);
+                GameEvents.OnBallMiss.Invoke();
+                Destroy(gameObject);
+            }
+        }
+
+        if(other.gameObject.CompareTag("WideBallCollider"))
+        {
+            if(!hasHitBat)
+            {
+                UIHandler.Instance.SetScoreBoard(1);
+                UIHandler.Instance.SetFeedback("Wide Ball");
                 GameEvents.OnBallMiss.Invoke();
                 Destroy(gameObject);
             }
