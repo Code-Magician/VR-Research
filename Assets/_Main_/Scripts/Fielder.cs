@@ -7,6 +7,7 @@ public class Fielder : MonoBehaviour
 {
     public NavMeshAgent agent;
     public Transform target;
+    public bool canFollowBall = false;
 
     private Vector3 initialLocation;
 
@@ -32,7 +33,7 @@ public class Fielder : MonoBehaviour
 
     void Update()
     {
-        if (target != null)
+        if (target != null && canFollowBall)
         {
             Vector3 targetPosition = target.position;
             // Keep the Y position same as the agent's current Y to prevent vertical movement

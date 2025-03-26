@@ -43,6 +43,8 @@ public class BowlingMachine : MonoBehaviour
 
     private void Awake()
     {
+        Cursor.lockState = CursorLockMode.Locked;
+
         if (GameEvents.isSpin)
         {
             ballingtypeTxt.text = "Balling Spin";
@@ -77,6 +79,11 @@ public class BowlingMachine : MonoBehaviour
         InputDevice rightHand = InputDevices.GetDeviceAtXRNode(XRNode.RightHand);
 
         if (playerOptionsCanvas.activeInHierarchy && rightHand.TryGetFeatureValue(CommonUsages.primaryButton, out bool primaryButton) && primaryButton)
+        {
+            Spawn();
+        }
+
+        if(Input.GetKey(KeyCode.M))
         {
             Spawn();
         }
