@@ -89,7 +89,7 @@ public class BowlingMachine : MonoBehaviour
         playerOptionsCanvas.SetActive(false);
     }
 
-    public void OnPlayerHitBall()
+    public void OnPlayerHitBall(Transform ballTr)
     {
         playerOptionsCanvas.SetActive(true);
         projectileCurveVisualizer.HideProjectileCurve();
@@ -103,6 +103,8 @@ public class BowlingMachine : MonoBehaviour
 
     public void Spawn()
     {
+        GameEvents.OnBallSpawn.Invoke();
+
         timerTxt.transform.parent.gameObject.SetActive(true);
         playerOptionsCanvas.SetActive(false);
         UIHandler.Instance.SetFeedback("");

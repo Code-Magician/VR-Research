@@ -59,7 +59,7 @@ public class CricketBall : MonoBehaviour
 
                 rb.velocity *= 1.5f;
 
-                GameEvents.OnPlayerHitBall.Invoke();
+                GameEvents.OnPlayerHitBall.Invoke(transform);
                 StartCoroutine(DestroyBallAfter());
             }
             else if (collision.gameObject.CompareTag("Ground"))
@@ -111,7 +111,7 @@ public class CricketBall : MonoBehaviour
 
             rb.velocity *= 2.5f;
 
-            GameEvents.OnPlayerHitBall.Invoke();
+            GameEvents.OnPlayerHitBall.Invoke(transform);
             StartCoroutine(DestroyBallAfter());
         }
         else if(collision.gameObject.CompareTag("Outside Ground"))
@@ -160,13 +160,33 @@ public class CricketBall : MonoBehaviour
                 Destroy(gameObject);
             }
         }
+
+        if(other.gameObject.CompareTag("Fielder"))
+        {
+            if(previousCollidedTag == "Bat")
+            {
+                UIHandler.Instance.SetScoreBoard(0);
+                UIHandler.Instance.SetFeedback("Catch Out");
+                GameEvents.OnPlayerOut.Invoke();
+                Destroy(gameObject);
+            }
+            else
+            {
+                CalculateInBetweenWicketRuns(); 
+            }
+        }
     }
 
     public IEnumerator DestroyBallAfter()
     {
         yield return new WaitForSeconds(waitTime);
 
-        if(hasHitBat)
+        CalculateInBetweenWicketRuns();
+    }
+
+    public void CalculateInBetweenWicketRuns()
+    {
+        if (hasHitBat)
         {
             Vector3 playerPos = GameObject.FindGameObjectWithTag("Player").gameObject.transform.position;
 
@@ -180,7 +200,7 @@ public class CricketBall : MonoBehaviour
             {
                 UIHandler.Instance.SetScoreBoard(2);
             }
-            else if(dist >= distOneRun)
+            else if (dist >= distOneRun)
             {
                 UIHandler.Instance.SetScoreBoard(1);
             }

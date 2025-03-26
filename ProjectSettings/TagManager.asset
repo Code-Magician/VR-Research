@@ -14,6 +14,7 @@ TagManager:
   - Wickets
   - BallMissCollider
   - WideBallCollider
+  - Fielder
   layers:
   - Default
   - TransparentFX

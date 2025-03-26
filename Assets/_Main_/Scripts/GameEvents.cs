@@ -6,8 +6,9 @@ using UnityEngine.Events;
 public static class GameEvents
 {
     public static UnityAction OnPlayerOut = delegate { };
-    public static UnityAction OnPlayerHitBall = delegate { };
+    public static UnityAction<Transform> OnPlayerHitBall = delegate { };
     public static UnityAction OnBallMiss = delegate { };
+    public static UnityAction OnBallSpawn = delegate { };
 
     public static int runs = 0;
     public static int balls = 0;
