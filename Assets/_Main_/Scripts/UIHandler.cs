@@ -72,6 +72,6 @@ public class UIHandler : MonoBehaviour
     public void SaveAndExit()
     {
         GameEvents.HandleHighScore();
-        MenuButtonAction();
+        Invoke("MenuButtonAction", 0.5f);
     }
 }

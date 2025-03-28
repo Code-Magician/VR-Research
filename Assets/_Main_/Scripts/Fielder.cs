@@ -1,19 +1,32 @@
+using DG.Tweening;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 
+public enum Target { Ball, InitialPosition }
+
 public class Fielder : MonoBehaviour
 {
+    [SerializeField] int minSpeed, maxSpeed;
     public NavMeshAgent agent;
-    public Transform target;
-    public bool canFollowBall = false;
+    public Transform ballingMachineTr;
+    public Target targetObject;
+
+    [HideInInspector] public Transform target;
 
     private Vector3 initialLocation;
 
     private void Awake()
     {
         initialLocation = transform.position;
+    }
+
+    private void Start()
+    {
+        int randomSpeed = Random.Range(minSpeed, maxSpeed);
+        agent.speed = randomSpeed;
+        LookAtTarget(ballingMachineTr.position, false);
     }
 
     private void OnEnable()
@@ -31,32 +44,44 @@ public class Fielder : MonoBehaviour
         target = ballTr;
     }
 
-    void Update()
+    void FixedUpdate()
     {
-        if (target != null && canFollowBall)
+        if (targetObject == Target.Ball)
         {
-            Vector3 targetPosition = target.position;
-            // Keep the Y position same as the agent's current Y to prevent vertical movement
-            targetPosition.y = agent.transform.position.y;
-
-            agent.SetDestination(targetPosition);
+            if(target != null){
+                agent.SetDestination(target.position);
+                LookAtTarget(target.position);
+            }
+            else
+            {
+                targetObject = Target.InitialPosition;
+            }
         }
-        else
+        else if (targetObject == Target.InitialPosition)
         {
             agent.SetDestination(initialLocation);
-        }
 
-        if (HasReachedDestination())
-        {
-            agent.ResetPath();
+            // If fielder reaches the initial position, look at the balling machine
+            if (!agent.pathPending && agent.remainingDistance <= agent.stoppingDistance)
+            {
+                LookAtTarget(ballingMachineTr.position, true);
+            }
         }
     }
 
-    bool HasReachedDestination()
+    private void LookAtTarget(Vector3 targetPosition, bool smoothRotation = true)
     {
-        return !agent.pathPending
-               && agent.remainingDistance <= agent.stoppingDistance
-               && (!agent.hasPath || agent.velocity.sqrMagnitude == 0f);
-    }
+        // Get the direction on the horizontal plane (ignore Y-axis)
+        Vector3 direction = new Vector3(targetPosition.x, transform.position.y, targetPosition.z) - transform.position;
 
+        if (direction.magnitude > 0.1f) // Avoid jittering when very close
+        {
+            Quaternion targetRotation = Quaternion.LookRotation(direction);
+
+            if(smoothRotation)
+                transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime);
+            else
+                transform.rotation = targetRotation;
+        }
+    }
 }

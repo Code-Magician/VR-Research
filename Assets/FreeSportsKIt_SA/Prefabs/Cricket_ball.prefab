@@ -183,7 +183,7 @@ GameObject:
   - component: {fileID: 2320050872845549444}
   m_Layer: 7
   m_Name: Cricket_ball
-  m_TagString: Untagged
+  m_TagString: Ball
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -275,6 +275,7 @@ MonoBehaviour:
   maxSwingForce: 5
   isInSwing: 0
   spinTargetPos: {x: 0, y: 0, z: 0}
+  previousCollidedTag: 
 --- !u!54 &8888566465071070334
 Rigidbody:
   m_ObjectHideFlags: 0

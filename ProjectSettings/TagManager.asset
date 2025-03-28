@@ -15,6 +15,7 @@ TagManager:
   - BallMissCollider
   - WideBallCollider
   - Fielder
+  - Ball
   layers:
   - Default
   - TransparentFX

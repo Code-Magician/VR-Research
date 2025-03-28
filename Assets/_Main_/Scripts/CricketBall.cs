@@ -11,7 +11,7 @@ public class CricketBall : MonoBehaviour
 
     [HideInInspector] public bool isInSwing;
     [HideInInspector] public Vector3 spinTargetPos;
-    private string previousCollidedTag = null;
+    public string previousCollidedTag = "";
     private bool hasHitBat = false, isSwinging = true;
 
     private void Awake()
@@ -23,6 +23,7 @@ public class CricketBall : MonoBehaviour
     {
         if(!GameEvents.isSpin && isSwinging)
         {
+            Debug.Log($"Swinging : {isSwinging}");
             Vector3 swingDir = Vector3.Cross(rb.velocity, Vector3.up).normalized;
             float swingForce = Random.Range(0f, maxSwingForce);
 
@@ -40,6 +41,8 @@ public class CricketBall : MonoBehaviour
 
     private void OnCollisionEnter(Collision collision)
     {
+        isSwinging = false;
+
         if (collision.gameObject.CompareTag("Wickets"))
         {
             GameEvents.OnPlayerOut.Invoke();
@@ -47,8 +50,9 @@ public class CricketBall : MonoBehaviour
 
             Destroy(gameObject);
         }
-        else if (previousCollidedTag == null)
+        else if (previousCollidedTag.Length == 0)
         {
+            Debug.Log("Previous Collider Null");
             if (collision.gameObject.CompareTag("Bat") && !hasHitBat)
             {
                 hasHitBat = true;
@@ -60,7 +64,6 @@ public class CricketBall : MonoBehaviour
                 rb.velocity *= 1.5f;
 
                 GameEvents.OnPlayerHitBall.Invoke(transform);
-                StartCoroutine(DestroyBallAfter());
             }
             else if (collision.gameObject.CompareTag("Ground"))
             {
@@ -68,6 +71,7 @@ public class CricketBall : MonoBehaviour
 
                 if(GameEvents.isSpin)
                 {
+                    Debug.Log("Is Spinning");
                     float currentY = rb.velocity.y;
 
                     Vector3 toTarget = (spinTargetPos - transform.position);
@@ -85,10 +89,6 @@ public class CricketBall : MonoBehaviour
 
                     rb.velocity = newVelocity;
                 }
-                else
-                {
-                    isSwinging = false;
-                }
             }
             else if(collision.gameObject.CompareTag("Outside Ground"))
             {
@@ -100,6 +100,7 @@ public class CricketBall : MonoBehaviour
         else if(collision.gameObject.CompareTag("Ground"))
         {
             previousCollidedTag = "Ground";
+            Debug.Log($"Swinging : {isSwinging}");
         }
         else if(collision.gameObject.CompareTag("Bat") && !hasHitBat)
         {
@@ -112,7 +113,6 @@ public class CricketBall : MonoBehaviour
             rb.velocity *= 2.5f;
 
             GameEvents.OnPlayerHitBall.Invoke(transform);
-            StartCoroutine(DestroyBallAfter());
         }
         else if(collision.gameObject.CompareTag("Outside Ground"))
         {
@@ -161,27 +161,21 @@ public class CricketBall : MonoBehaviour
             }
         }
 
-        if(other.gameObject.CompareTag("Fielder"))
+        if (other.gameObject.CompareTag("Fielder"))
         {
-            if(previousCollidedTag == "Bat")
+            if (previousCollidedTag == "Bat")
             {
                 UIHandler.Instance.SetScoreBoard(0);
                 UIHandler.Instance.SetFeedback("Catch Out");
                 GameEvents.OnPlayerOut.Invoke();
-                Destroy(gameObject);
             }
             else
             {
-                CalculateInBetweenWicketRuns(); 
+                CalculateInBetweenWicketRuns();
             }
+
+            Destroy(gameObject);
         }
-    }
-
-    public IEnumerator DestroyBallAfter()
-    {
-        yield return new WaitForSeconds(waitTime);
-
-        CalculateInBetweenWicketRuns();
     }
 
     public void CalculateInBetweenWicketRuns()
@@ -204,6 +198,11 @@ public class CricketBall : MonoBehaviour
             {
                 UIHandler.Instance.SetScoreBoard(1);
             }
+            else
+            {
+                UIHandler.Instance.SetFeedback("No Run");
+            }
+
             Destroy(gameObject);
         }
     }

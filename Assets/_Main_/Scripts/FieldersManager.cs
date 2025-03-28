@@ -38,12 +38,19 @@ public class FieldersManager : MonoBehaviour
 
                 if (Vector3.Distance(ballPos, fielderPos) <= minDistanceToFollowBall)
                 {
-                    fielder.canFollowBall = true;
+                    fielder.targetObject = Target.Ball;
                 }
                 else
                 {
-                    fielder.canFollowBall = false;
+                    fielder.targetObject = Target.InitialPosition;
                 }
+            }
+        }
+        else
+        {
+            foreach (var fielder in fielders)
+            {
+                fielder.targetObject = Target.InitialPosition;
             }
         }
     }
