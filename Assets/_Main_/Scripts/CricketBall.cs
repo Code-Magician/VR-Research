@@ -23,7 +23,6 @@ public class CricketBall : MonoBehaviour
     {
         if(!GameEvents.isSpin && isSwinging)
         {
-            Debug.Log($"Swinging : {isSwinging}");
             Vector3 swingDir = Vector3.Cross(rb.velocity, Vector3.up).normalized;
             float swingForce = Random.Range(0f, maxSwingForce);
 
@@ -52,7 +51,6 @@ public class CricketBall : MonoBehaviour
         }
         else if (previousCollidedTag.Length == 0)
         {
-            Debug.Log("Previous Collider Null");
             if (collision.gameObject.CompareTag("Bat") && !hasHitBat)
             {
                 hasHitBat = true;

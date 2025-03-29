@@ -1,12 +1,8 @@
 using DG.Tweening;
 using ProjectileCurveVisualizerSystem;
-using System.Collections;
-using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.XR;
-using UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Receiver.Primitives;
-using static UnityEngine.GraphicsBuffer;
 
 public class BowlingMachine : MonoBehaviour
 {
@@ -170,6 +166,15 @@ public class BowlingMachine : MonoBehaviour
             spinTargetPos.z = zPos;
 
             cricketBall.spinTargetPos = spinTargetPos;
+
+            if(spinTargetPos.z < landPosition.z)
+            {
+                ballingtypeTxt.text = "Balling On Spin";
+            }
+            else
+            {
+                ballingtypeTxt.text = "Balling Off Spin";
+            }
         }
         else
         {
