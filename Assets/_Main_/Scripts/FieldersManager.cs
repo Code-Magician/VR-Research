@@ -6,6 +6,7 @@ public class FieldersManager : MonoBehaviour
 {
     [SerializeField] List<Fielder> fielders;
     [SerializeField] float minDistanceToFollowBall;
+    [SerializeField] float coneAngle = 30f;
 
     private Transform currentBallTr;
 
@@ -22,21 +23,25 @@ public class FieldersManager : MonoBehaviour
     private void OnPlayerHitBall(Transform ballTr)
     {
         currentBallTr = ballTr;
+        ActivateFielders();
     }
 
-    private void FixedUpdate()
+    private void ActivateFielders()
     {
         if(currentBallTr != null)
         {
             foreach (var fielder in fielders)
             {
-                Vector3 ballPos = currentBallTr.position;
-                Vector3 fielderPos = fielder.transform.position;
+                Vector3 dirToTarget = (fielder.transform.position - currentBallTr.position).normalized;
 
-                ballPos.y = 0;
-                fielderPos.y = 0;
+                Vector3 ballDirection = currentBallTr.GetComponent<Rigidbody>().velocity;
+                ballDirection.y = 0f;
+                ballDirection.Normalize();
 
-                if (Vector3.Distance(ballPos, fielderPos) <= minDistanceToFollowBall)
+                float dotProduct = Vector3.Dot(ballDirection, dirToTarget);
+                float angle = Mathf.Acos(dotProduct) * Mathf.Rad2Deg; // Convert to degrees
+
+                if (angle <= coneAngle)
                 {
                     fielder.targetObject = Target.Ball;
                 }

@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 995858854348320329}
   - component: {fileID: 8256953505987536969}
   - component: {fileID: 3127922546469051237}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Fielder1
   m_TagString: Fielder
   m_Icon: {fileID: 0}
@@ -107,7 +107,7 @@ GameObject:
   - component: {fileID: 8797769973640131968}
   - component: {fileID: 1425445961201137712}
   - component: {fileID: 7391409732913508442}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Cleaner_bot (4)
   m_TagString: Fielder
   m_Icon: {fileID: 0}

@@ -40,10 +40,9 @@ public class CricketBall : MonoBehaviour
 
     private void OnCollisionEnter(Collision collision)
     {
-        isSwinging = false;
-
         if (collision.gameObject.CompareTag("Wickets"))
         {
+            Debug.Log("Out");
             GameEvents.OnPlayerOut.Invoke();
             GameEvents.HandleHighScore();
 
@@ -59,7 +58,7 @@ public class CricketBall : MonoBehaviour
                 audioSource.Stop();
                 audioSource.Play();
 
-                rb.velocity *= 1.5f;
+                rb.velocity *= 2.5f;
 
                 GameEvents.OnPlayerHitBall.Invoke(transform);
             }
@@ -87,6 +86,10 @@ public class CricketBall : MonoBehaviour
 
                     rb.velocity = newVelocity;
                 }
+                else
+                {
+                    isSwinging = false;
+                }
             }
             else if(collision.gameObject.CompareTag("Outside Ground"))
             {
@@ -98,7 +101,6 @@ public class CricketBall : MonoBehaviour
         else if(collision.gameObject.CompareTag("Ground"))
         {
             previousCollidedTag = "Ground";
-            Debug.Log($"Swinging : {isSwinging}");
         }
         else if(collision.gameObject.CompareTag("Bat") && !hasHitBat)
         {
