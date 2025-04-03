@@ -3,178 +3,201 @@ using UnityEngine;
 
 public class CricketBall : MonoBehaviour
 {
+    [Header("References")]
     public Rigidbody rb;
     [SerializeField] AudioSource audioSource;
-    [SerializeField] float waitTime;
+
+    [Header("Fields")]
     [SerializeField] int distOneRun, distTwoRun, distThreeRun;
     [SerializeField] float maxSwingForce;
 
     [HideInInspector] public bool isInSwing;
     [HideInInspector] public Vector3 spinTargetPos;
-    public string previousCollidedTag = "";
-    private bool hasHitBat = false, isSwinging = true;
+    private bool hasHitBat = false, hasHitGroundAfterBat = false, isSwinging = true;
 
-    private void Awake()
-    {
-
-    }
 
     private void FixedUpdate()
     {
         if(!GameEvents.isSpin && isSwinging)
         {
-            Vector3 swingDir = Vector3.Cross(rb.velocity, Vector3.up).normalized;
-            float swingForce = Random.Range(0f, maxSwingForce);
-
-            switch(isInSwing)
-            {
-                case true:
-                    rb.AddForce(-swingDir * swingForce);
-                    break;
-                case false:
-                    rb.AddForce(swingDir * swingForce);
-                    break;
-            }
+            MakeBallSwing();
         }
     }
 
     private void OnCollisionEnter(Collision collision)
     {
-        if (collision.gameObject.CompareTag("Wickets"))
+        switch (collision.gameObject.tag)
         {
-            Debug.Log("Out");
-            GameEvents.OnPlayerOut.Invoke();
-            GameEvents.HandleHighScore();
+            case "Wickets":
+                BallHitWicketAction();
+                break;
 
-            Destroy(gameObject);
-        }
-        else if (previousCollidedTag.Length == 0)
-        {
-            if (collision.gameObject.CompareTag("Bat") && !hasHitBat)
-            {
-                hasHitBat = true;
-                previousCollidedTag = "Bat";
+            case "Bat":
+                BallHitBatAction();
+                break;
 
-                audioSource.Stop();
-                audioSource.Play();
+            case "Outside Ground":
+                BallHitOutsideGroundAction();
+                break;
 
-                rb.velocity *= 2.5f;
-
-                GameEvents.OnPlayerHitBall.Invoke(transform);
-            }
-            else if (collision.gameObject.CompareTag("Ground"))
-            {
-                previousCollidedTag = "Ground";
-
-                if(GameEvents.isSpin)
-                {
-                    Debug.Log("Is Spinning");
-                    float currentY = rb.velocity.y;
-
-                    Vector3 toTarget = (spinTargetPos - transform.position);
-                    toTarget.y = 0; // Only care about horizontal direction
-                    toTarget.Normalize();
-
-                    // Preserve horizontal speed (XZ magnitude)
-                    Vector3 currentHorizontal = rb.velocity;
-                    currentHorizontal.y = 0;
-                    float horizontalSpeed = currentHorizontal.magnitude;
-
-                    // Apply new horizontal direction with same speed, retain Y
-                    Vector3 newVelocity = toTarget * horizontalSpeed;
-                    newVelocity.y = currentY;
-
-                    rb.velocity = newVelocity;
-                }
-                else
-                {
-                    isSwinging = false;
-                }
-            }
-            else if(collision.gameObject.CompareTag("Outside Ground"))
-            {
-                UIHandler.Instance.SetScoreBoard(0);
-                GameEvents.OnBallMiss.Invoke();
-                Destroy(gameObject);
-            }
-        }
-        else if(collision.gameObject.CompareTag("Ground"))
-        {
-            previousCollidedTag = "Ground";
-        }
-        else if(collision.gameObject.CompareTag("Bat") && !hasHitBat)
-        {
-            hasHitBat = true;
-            previousCollidedTag = "Bat";
-
-            audioSource.Stop();
-            audioSource.Play();
-
-            rb.velocity *= 2.5f;
-
-            GameEvents.OnPlayerHitBall.Invoke(transform);
-        }
-        else if(collision.gameObject.CompareTag("Outside Ground"))
-        {
-            if(hasHitBat)
-            {
-                if(previousCollidedTag == "Bat")
-                {
-                    UIHandler.Instance.SetScoreBoard(6);
-                    Destroy(gameObject);
-                }
-                else if(previousCollidedTag == "Ground")
-                {
-                    UIHandler.Instance.SetScoreBoard(4);
-                    Destroy(gameObject);
-                }
-            }
-            else
-            {
-                UIHandler.Instance.SetScoreBoard(0);
-                GameEvents.OnBallMiss.Invoke();
-                Destroy(gameObject);
-            }
+            case "Ground":
+                BallHitGroundAction();
+                break;
         }
     }
 
     private void OnTriggerEnter(Collider other)
     {
-        if(other.gameObject.CompareTag("BallMissCollider"))
+        switch (other.gameObject.tag)
         {
-            if(!hasHitBat)
-            {
-                UIHandler.Instance.SetScoreBoard(0);
-                GameEvents.OnBallMiss.Invoke();
-                Destroy(gameObject);
-            }
-        }
+            case "BallMissCollider":
+                BallHitBallMissColliderAction();
+                break;
 
-        if(other.gameObject.CompareTag("WideBallCollider"))
-        {
-            if(!hasHitBat)
-            {
-                UIHandler.Instance.SetScoreBoard(1);
-                UIHandler.Instance.SetFeedback("Wide Ball");
-                GameEvents.OnBallMiss.Invoke();
-                Destroy(gameObject);
-            }
-        }
+            case "WideBallCollider":
+                BallHitWideBallColliderAction();
+                break;
 
-        if (other.gameObject.CompareTag("Fielder"))
+            case "Fielder":
+                BallHitFielderAction();
+                break;
+        }
+    }
+
+    public void BallHitWicketAction()
+    {
+        GameEvents.OnPlayerOut.Invoke();
+        GameEvents.HandleHighScore();
+        UIHandler.Instance.SetFeedback("Bowled");
+
+        Destroy(gameObject);
+    }
+
+    public void BallHitBatAction()
+    {
+        hasHitBat = true;
+
+        audioSource.Stop();
+        audioSource.Play();
+
+        rb.velocity *= 2.5f;
+
+        GameEvents.OnPlayerHitBall.Invoke(transform);
+    }
+
+    public void BallHitOutsideGroundAction()
+    {
+        GameEvents.OnBallHitOutsideGround.Invoke();
+        if (hasHitBat)
         {
-            if (previousCollidedTag == "Bat")
+            if (!hasHitGroundAfterBat)
             {
-                UIHandler.Instance.SetScoreBoard(0);
-                UIHandler.Instance.SetFeedback("Catch Out");
-                GameEvents.OnPlayerOut.Invoke();
+                UIHandler.Instance.SetScoreBoard(6);
             }
             else
             {
-                CalculateInBetweenWicketRuns();
+                UIHandler.Instance.SetScoreBoard(4);
             }
+        }
+        else
+        {
+            UIHandler.Instance.SetScoreBoard(0);
+            UIHandler.Instance.SetFeedback("Missed Ball");
+            GameEvents.OnBallMiss.Invoke();
+        }
 
+        Destroy(gameObject);
+    }
+
+    private void BallHitGroundAction()
+    {
+        if (!GameEvents.isSpin) isSwinging = false;
+        
+        if(hasHitBat)
+        {
+            hasHitGroundAfterBat = true;
+        }
+        else
+        {
+            if(GameEvents.isSpin)
+            {
+                MakeBallSpin();
+            }
+        }
+    }
+
+    private void BallHitBallMissColliderAction()
+    {
+        if (!hasHitBat)
+        {
+            UIHandler.Instance.SetScoreBoard(0);
+            UIHandler.Instance.SetFeedback("Missed Ball");
+            GameEvents.OnBallMiss.Invoke();
             Destroy(gameObject);
+        }
+    }
+
+    private void BallHitWideBallColliderAction()
+    {
+        if (!hasHitBat)
+        {
+            UIHandler.Instance.SetScoreBoard(1);
+            UIHandler.Instance.SetFeedback("Wide Ball");
+            GameEvents.OnBallMiss.Invoke();
+            Destroy(gameObject);
+        }
+    }
+
+    private void BallHitFielderAction()
+    {
+        if (hasHitBat && !hasHitGroundAfterBat)
+        {
+            UIHandler.Instance.SetScoreBoard(0);
+            UIHandler.Instance.SetFeedback("Catch Out");
+            GameEvents.OnPlayerOut.Invoke();
+        }
+        else
+        {
+            GameEvents.OnFielderCaughtBall.Invoke();
+            CalculateInBetweenWicketRuns();
+        }
+
+        Destroy(gameObject);
+    }
+
+    private void MakeBallSpin()
+    {
+        float currentY = rb.velocity.y;
+
+        Vector3 toTarget = (spinTargetPos - transform.position);
+        toTarget.y = 0; // Only care about horizontal direction
+        toTarget.Normalize();
+
+        // Preserve horizontal speed (XZ magnitude)
+        Vector3 currentHorizontal = rb.velocity;
+        currentHorizontal.y = 0;
+        float horizontalSpeed = currentHorizontal.magnitude;
+
+        // Apply new horizontal direction with same speed, retain Y
+        Vector3 newVelocity = toTarget * horizontalSpeed;
+        newVelocity.y = currentY;
+
+        rb.velocity = newVelocity;
+    }
+
+    private void MakeBallSwing()
+    {
+        Vector3 swingDir = Vector3.Cross(rb.velocity, Vector3.up).normalized;
+        float swingForce = Random.Range(0f, maxSwingForce);
+
+        switch (isInSwing)
+        {
+            case true:
+                rb.AddForce(-swingDir * swingForce);
+                break;
+            case false:
+                rb.AddForce(swingDir * swingForce);
+                break;
         }
     }
 
@@ -202,8 +225,6 @@ public class CricketBall : MonoBehaviour
             {
                 UIHandler.Instance.SetFeedback("No Run");
             }
-
-            Destroy(gameObject);
         }
     }
 }

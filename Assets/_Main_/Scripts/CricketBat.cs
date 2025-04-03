@@ -10,13 +10,11 @@ public class CricketBat : MonoBehaviour
     {
         if(collision.gameObject.CompareTag("Wickets"))
         {
-            GameEvents.OnPlayerOut();
-            UIHandler.Instance.SetScoreBoard(0);
-            GameEvents.OnPlayerOut();
+            GameEvents.OnPlayerOut.Invoke();
+            UIHandler.Instance.SetFeedback("Hit Wicket");
         }
         else if(collision.gameObject.CompareTag("Ground"))
         {
-            Debug.Log(collision.gameObject.tag);
             audioSource.Stop();
             audioSource.Play();
         }

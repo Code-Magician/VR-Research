@@ -8,6 +8,8 @@ public static class GameEvents
     public static UnityAction OnPlayerOut = delegate { };
     public static UnityAction<Transform> OnPlayerHitBall = delegate { };
     public static UnityAction OnBallMiss = delegate { };
+    public static UnityAction OnFielderCaughtBall = delegate { };
+    public static UnityAction OnBallHitOutsideGround = delegate { };
     public static UnityAction OnBallSpawn = delegate { };
 
     public static int runs = 0;

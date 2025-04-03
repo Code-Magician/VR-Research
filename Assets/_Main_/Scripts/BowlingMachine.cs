@@ -6,28 +6,36 @@ using UnityEngine.XR;
 
 public class BowlingMachine : MonoBehaviour
 {
+    [Header("References")]
     [SerializeField] GameObject ballPrefab;
     [SerializeField] Transform spawnLocation, wicketTr;
-    [SerializeField] float minSpeed = 40f, maxSpeed = 120f;
     [SerializeField] Transform startXTr, endXTr, startZTr, endZTr, spinStartZ, spinEndZ;
-    [SerializeField] float timeBetweenNewBallSpawn = 1f;
-    [SerializeField] GameObject playerOptionsCanvas;
     [SerializeField] TMP_Text timerTxt, ballingSpeedTxt, ballingtypeTxt;
     [SerializeField] ProjectileCurveVisualizer projectileCurveVisualizer;
+    [SerializeField] GameObject playerOptionsCanvas;
+
+    [Header("Fields")]
+    [SerializeField] float timeBetweenNewBallSpawn = 1f;
+    [SerializeField] float minSpinBallSpeed, maxSpinBallSpeed;
+    [SerializeField] float minFastBallSpeed, maxFastBallSpeed;
 
 
+    private float minSpeed = 40f, maxSpeed = 120f;
     private float timer = 0.0f;
     private float speed;
-    private Vector3 direction, landPosition;
-    private bool isRunning = false, isInSwing;
+    private Vector3 direction, landPosition, spinTargetPos;
+    private bool isRunning = false, isInSwing, canSpawnNextBall = true;
     private Vector3 updatedProjectileStartPosition;
     private RaycastHit hit;
+
 
     private void OnEnable()
     {
         GameEvents.OnPlayerOut += OnPlayerOut;
         GameEvents.OnPlayerHitBall += OnPlayerHitBall;
         GameEvents.OnBallMiss += OnBallMiss;
+        GameEvents.OnFielderCaughtBall += OnFielderCaughtBall;
+        GameEvents.OnBallHitOutsideGround += OnBallHitOutsideGround;
     }
 
     private void OnDisable()
@@ -35,6 +43,8 @@ public class BowlingMachine : MonoBehaviour
         GameEvents.OnPlayerOut -= OnPlayerOut;
         GameEvents.OnPlayerHitBall -= OnPlayerHitBall;
         GameEvents.OnBallMiss -= OnBallMiss;
+        GameEvents.OnFielderCaughtBall -= OnFielderCaughtBall;
+        GameEvents.OnBallHitOutsideGround -= OnBallHitOutsideGround;
     }
 
     private void Awake()
@@ -43,15 +53,13 @@ public class BowlingMachine : MonoBehaviour
 
         if (GameEvents.isSpin)
         {
-            ballingtypeTxt.text = "Balling Spin";
-            minSpeed = 22;
-            maxSpeed = 30;
+            minSpeed = minSpinBallSpeed;
+            maxSpeed = maxSpinBallSpeed;
         }
         else
         {
-            ballingtypeTxt.text = "Balling Fast";
-            minSpeed = 30f;
-            maxSpeed = 45;
+            minSpeed = minFastBallSpeed;
+            maxSpeed = maxFastBallSpeed;
         }
     }
 
@@ -60,89 +68,78 @@ public class BowlingMachine : MonoBehaviour
         if (isRunning)
         {
             timer += Time.deltaTime;
-            timerTxt.text = (timeBetweenNewBallSpawn - timer).ToString("0");
+            timerTxt.text = (timeBetweenNewBallSpawn - timer).ToString("F0");
 
             if ((timer > timeBetweenNewBallSpawn))
             {
-                SpawnBall();
-
-                timer = 0;
                 isRunning = false;
+                timer = 0;
                 timerTxt.transform.parent.gameObject.SetActive(false);
+
+                SpawnBall();
             }
         }
 
         InputDevice rightHand = InputDevices.GetDeviceAtXRNode(XRNode.RightHand);
-
-        if (playerOptionsCanvas.activeInHierarchy && rightHand.TryGetFeatureValue(CommonUsages.primaryButton, out bool primaryButton) && primaryButton)
+        if (canSpawnNextBall && playerOptionsCanvas.activeInHierarchy && rightHand.TryGetFeatureValue(CommonUsages.primaryButton, out bool primaryButton) && primaryButton)
         {
-            Spawn();
+            canSpawnNextBall = false;
+            BallSpawnButtonAction();
         }
 
         if(Input.GetKey(KeyCode.M))
         {
-            Spawn();
+            BallSpawnButtonAction();
         }
     }
 
     public void OnPlayerOut()
     {
-        timerTxt.text = "Out";
         isRunning = false;
-        playerOptionsCanvas.SetActive(false);
+        projectileCurveVisualizer.HideProjectileCurve();
     }
 
     public void OnPlayerHitBall(Transform ballTr)
     {
-        playerOptionsCanvas.SetActive(true);
         projectileCurveVisualizer.HideProjectileCurve();
     }
 
     public void OnBallMiss()
     {
+        canSpawnNextBall = true;
         playerOptionsCanvas.SetActive(true);
         projectileCurveVisualizer.HideProjectileCurve();
     }
 
-    public void Spawn()
+    private void OnFielderCaughtBall()
+    {
+        canSpawnNextBall = true;
+        playerOptionsCanvas.SetActive(true);
+    }
+
+    private void OnBallHitOutsideGround()
+    {
+        canSpawnNextBall = true;
+        playerOptionsCanvas.SetActive(true);
+    }
+
+    public void BallSpawnButtonAction()
     {
         GameEvents.OnBallSpawn.Invoke();
 
         timerTxt.transform.parent.gameObject.SetActive(true);
         playerOptionsCanvas.SetActive(false);
-        UIHandler.Instance.SetFeedback("");
 
-        // Ball Speed Calculation
-        float u = Random.Range(minSpeed, maxSpeed); // Get random speed
-        speed = u;
-        ballingSpeedTxt.text = (speed * 3600f / 1000f).ToString("F1") + " Km/h";
+        UIHandler.Instance.SetFeedback("");
 
         // Set Balling Spawn Location.
         float spawnZPos = Random.Range(-startZTr.position.z, startZTr.position.z);
         Vector3 spawnPos = transform.position;
         spawnPos.z = spawnZPos;
+
         transform.DOMove(spawnPos, 1f).OnComplete(() =>
         {
-            // Set Ball Direction and Land Position.
-            float xPos = Random.Range(startXTr.position.x, endXTr.position.x);
-            float zPos = Random.Range(startZTr.position.z, endZTr.position.z);
-            landPosition = new Vector3(xPos, 0, zPos);
-            Vector3 startPosition = spawnLocation.transform.position;
-            direction = (landPosition - startPosition).normalized;
-
-            if(!GameEvents.isSpin)
-            {
-                if (landPosition.z < wicketTr.position.z)
-                {
-                    isInSwing = true;
-                    ballingtypeTxt.text = "Balling In Swing";
-                }
-                else
-                {
-                    isInSwing = false;
-                    ballingtypeTxt.text = "Balling Out Swing";
-                }
-            }
+            BallDataCalculation();
 
             projectileCurveVisualizer.VisualizeProjectileCurve(spawnLocation.position, 0f, direction * speed, 0.05f, 0.01f, false, out updatedProjectileStartPosition, out hit);
 
@@ -161,13 +158,36 @@ public class BowlingMachine : MonoBehaviour
 
         if(GameEvents.isSpin)
         {
-            Vector3 spinTargetPos = spinStartZ.position;
-            float zPos = Random.Range(spinStartZ.position.z, spinEndZ.position.z);
+            cricketBall.spinTargetPos = spinTargetPos;
+        }
+        else
+        {
+            cricketBall.isInSwing = isInSwing;
+        }
+    }
+
+    private void BallDataCalculation()
+    {
+        // Ball Speed Calculation
+        float u = Random.Range(minSpeed, maxSpeed); // Get random speed
+        speed = u;
+        ballingSpeedTxt.text = (speed * 3600f / 1000f).ToString("F0") + " Km/h";
+
+        // Set Ball Direction and Land Position.
+        float xPos = Random.Range(startXTr.position.x, endXTr.position.x);
+        float zPos = Random.Range(startZTr.position.z, endZTr.position.z);
+        landPosition = new Vector3(xPos, 0, zPos);
+
+        Vector3 startPosition = spawnLocation.transform.position;
+        direction = (landPosition - startPosition).normalized;
+
+        if (GameEvents.isSpin)
+        {
+            spinTargetPos = spinStartZ.position;
+            zPos = Random.Range(spinStartZ.position.z, spinEndZ.position.z);
             spinTargetPos.z = zPos;
 
-            cricketBall.spinTargetPos = spinTargetPos;
-
-            if(spinTargetPos.z < landPosition.z)
+            if (landPosition.z < zPos)
             {
                 ballingtypeTxt.text = "Balling On Spin";
             }
@@ -178,7 +198,16 @@ public class BowlingMachine : MonoBehaviour
         }
         else
         {
-            cricketBall.isInSwing = isInSwing;
+            if (landPosition.z < wicketTr.position.z)
+            {
+                isInSwing = true;
+                ballingtypeTxt.text = "Balling In Swing";
+            }
+            else
+            {
+                isInSwing = false;
+                ballingtypeTxt.text = "Balling Out Swing";
+            }
         }
     }
 }

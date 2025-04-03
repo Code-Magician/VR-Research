@@ -267,7 +267,7 @@ Transform:
   m_GameObject: {fileID: 8044525}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0.7071068, z: 0, w: 0.7071068}
-  m_LocalPosition: {x: -15.736, y: 1, z: -0.09}
+  m_LocalPosition: {x: -15.184, y: 0.858, z: -0.23}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -7971,7 +7971,7 @@ Transform:
   m_GameObject: {fileID: 1127044793}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -16.748, y: 0, z: 0.114}
+  m_LocalPosition: {x: -16.748, y: 0, z: 0.269}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -8684,20 +8684,22 @@ MonoBehaviour:
     type: 3}
   spawnLocation: {fileID: 1425918249}
   wicketTr: {fileID: 2117185193}
-  minSpeed: 22.5
-  maxSpeed: 45
   startXTr: {fileID: 1495145033}
   endXTr: {fileID: 1486090098}
   startZTr: {fileID: 1639750062}
   endZTr: {fileID: 617143280}
   spinStartZ: {fileID: 1836023596}
   spinEndZ: {fileID: 1127044794}
-  timeBetweenNewBallSpawn: 3
-  playerOptionsCanvas: {fileID: 2081006672}
   timerTxt: {fileID: 651263211}
   ballingSpeedTxt: {fileID: 1433976623}
   ballingtypeTxt: {fileID: 202784848}
   projectileCurveVisualizer: {fileID: 1485780332}
+  playerOptionsCanvas: {fileID: 2081006672}
+  timeBetweenNewBallSpawn: 3
+  minSpinBallSpeed: 22
+  maxSpinBallSpeed: 30
+  minFastBallSpeed: 30
+  maxFastBallSpeed: 45
 --- !u!114 &1226818258 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 3127922546469051237, guid: 62870ea23f3166048a05545bde797779,
@@ -9113,7 +9115,7 @@ Transform:
   m_GameObject: {fileID: 1268795367}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -13.856578, y: 0.111638784, z: -0.6553619}
+  m_LocalPosition: {x: -18.531, y: 0.111638784, z: -0.6553619}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -12729,7 +12731,7 @@ Transform:
   m_GameObject: {fileID: 1836023595}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -16.748, y: 0, z: -0.534}
+  m_LocalPosition: {x: -16.748, y: 0, z: -0.678}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -14057,7 +14059,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 50, y: 90, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -13.575, y: 0.583}
+  m_AnchoredPosition: {x: -13.268, y: 0.583}
   m_SizeDelta: {x: 2, y: 0.6554}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1001 &2087906987
@@ -15071,7 +15073,6 @@ MonoBehaviour:
   - {fileID: 612643074}
   - {fileID: 414122234}
   - {fileID: 1825602388}
-  minDistanceToFollowBall: 25
   coneAngle: 30
 --- !u!23 &1746654309750261604
 MeshRenderer:
@@ -15748,7 +15749,7 @@ Rigidbody:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3849762624776831773}
   serializedVersion: 4
-  m_Mass: 0.5
+  m_Mass: 0.01
   m_Drag: 0
   m_AngularDrag: 0.05
   m_CenterOfMass: {x: 0, y: 0, z: 0}
@@ -16121,9 +16122,9 @@ Rigidbody:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 843214210936704847}
   serializedVersion: 4
-  m_Mass: 3
+  m_Mass: 0.05
   m_Drag: 0
-  m_AngularDrag: 0.05
+  m_AngularDrag: 0
   m_CenterOfMass: {x: 0, y: 0, z: 0}
   m_InertiaTensor: {x: 1, y: 1, z: 1}
   m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
@@ -16199,7 +16200,7 @@ Rigidbody:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2800250517359075626}
   serializedVersion: 4
-  m_Mass: 0.5
+  m_Mass: 0.01
   m_Drag: 0
   m_AngularDrag: 0.05
   m_CenterOfMass: {x: 0, y: 0, z: 0}

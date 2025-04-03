@@ -8,14 +8,17 @@ public enum Target { Ball, InitialPosition }
 
 public class Fielder : MonoBehaviour
 {
-    [SerializeField] int minSpeed, maxSpeed;
+    [Header("References")]
     public NavMeshAgent agent;
     public Transform ballingMachineTr;
     public Target targetObject;
 
-    [HideInInspector] public Transform target;
+    [Header("Fields")]
+    [SerializeField] int minSpeed, maxSpeed;
 
+    [HideInInspector] public Transform target;
     private Vector3 initialLocation;
+
 
     private void Awake()
     {
@@ -26,6 +29,7 @@ public class Fielder : MonoBehaviour
     {
         int randomSpeed = Random.Range(minSpeed, maxSpeed);
         agent.speed = randomSpeed;
+
         LookAtTarget(ballingMachineTr.position, false);
     }
 

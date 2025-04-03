@@ -4,11 +4,14 @@ using UnityEngine;
 
 public class FieldersManager : MonoBehaviour
 {
+    [Header("References")]
     [SerializeField] List<Fielder> fielders;
-    [SerializeField] float minDistanceToFollowBall;
+
+    [Header("Fields")]
     [SerializeField] float coneAngle = 30f;
 
     private Transform currentBallTr;
+
 
     private void OnEnable()
     {
