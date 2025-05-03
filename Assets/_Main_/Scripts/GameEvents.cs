@@ -3,6 +3,11 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 
+public enum GameType
+{
+    Easy, Fast, Spin, Hard, T20, Custom
+}
+
 public static class GameEvents
 {
     public static UnityAction OnPlayerOut = delegate { };
@@ -15,6 +20,8 @@ public static class GameEvents
     public static int runs = 0;
     public static int balls = 0;
     public static bool isSpin = true;
+    public static GameType gameType = GameType.Easy;
+
 
     public static void HandleHighScore()
     {

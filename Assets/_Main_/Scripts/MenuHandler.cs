@@ -22,9 +22,8 @@ public class MenuHandler : MonoBehaviour
         highScoreTxt.text = $"Highscore is {runs} runs in {balls / 6}.{balls % 6} overs.";
     }
 
-    public void PlayButtonAction()
+    private void PlayButtonAction()
     {
-        GetSelectedToggle();
         SceneManager.LoadScene("Cricket");
     }
 
@@ -37,25 +36,39 @@ public class MenuHandler : MonoBehaviour
 #endif
     }
 
-    public void GetSelectedToggle()
+    public void EasyButtonAction()
     {
-        // Returns the first toggle that is on in the group
-        Toggle selectedToggle = toggleGroup.ActiveToggles().FirstOrDefault();
+        GameModeType(GameType.Easy);
+    }
 
-        if (selectedToggle != null)
-        {
-            if(selectedToggle.name == "Fast Ball")
-            {
-                GameEvents.isSpin = false;
-            }
-            else
-            {
-                GameEvents.isSpin = true;
-            }
-        }
-        else
-        {
-            GameEvents.isSpin = true;
-        }
+    public void FastButtonAction()
+    {
+        GameModeType(GameType.Fast);
+    }
+
+    public void SpinButtonAction()
+    {
+        GameModeType(GameType.Spin);
+    }
+
+    public void HardButtonAction()
+    {
+        GameModeType(GameType.Hard);
+    }
+
+    public void T20ButtonAction()
+    {
+        GameModeType(GameType.T20);
+    }
+
+    public void CustomButtonAction()
+    {
+        GameModeType(GameType.Custom);
+    }
+
+    public void GameModeType(GameType gameType)
+    {
+        GameEvents.gameType = gameType;
+        PlayButtonAction();
     }
 }
